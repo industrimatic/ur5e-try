@@ -51,7 +51,7 @@ def main(xml_path: str, urdf_path: str):
     start_joints = np.array([-1.57, -1.34, 2.65, -1.3, 1.55, 0])
     data.qpos[:6] = start_joints
 
-    ee_pos = [-0.13, 0.6, 0.1]
+    ee_pos = [-0.13, 0.5, 0.1]
     ee_euler = [3.14, 0, 1.57]
     ref_pos = [0, 0, -1.57, -1.34, 2.65, -1.3, 1.55, 0, 0]
     ee_orientation = tf.euler.euler2mat(*ee_euler)
@@ -61,7 +61,7 @@ def main(xml_path: str, urdf_path: str):
     )
     end_joints = joint_angles[2:-1]
 
-    joint_trajectory = JointSpaceTrajectory(start_joints, end_joints, steps=100)
+    joint_trajectory = JointSpaceTrajectory(start_joints, end_joints, steps=50)
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
 
