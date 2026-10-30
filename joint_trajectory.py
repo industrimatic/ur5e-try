@@ -3,6 +3,8 @@ import mujoco.viewer
 import ikpy.chain
 import numpy as np
 import transforms3d as tf
+from datetime import datetime
+import time
 from typing import Iterator
 
 
@@ -33,6 +35,12 @@ class JointSpaceTrajectory:
         return self.way_points
 
 
+def get_current_time(timestamp: float) -> str:
+    dt = datetime.fromtimestamp(timestamp)
+    ms = dt.microsecond // 1000
+    return f"{dt.year}/{dt.month:02d}/{dt.day:02d}-{dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}:{ms:03d}"
+
+
 def main(xml_path: str, urdf_path: str):
     model = mujoco.MjModel.from_xml_path(xml_path)
     data = mujoco.MjData(model)
@@ -56,12 +64,21 @@ def main(xml_path: str, urdf_path: str):
     joint_trajectory = JointSpaceTrajectory(start_joints, end_joints, steps=100)
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
+
+        last_time = time.time()
+
         while viewer.is_running():
             waypoint = joint_trajectory.get_next_waypoint(data.qpos[:6])
             data.ctrl[:6] = waypoint
 
             mujoco.mj_step(model, data)
             viewer.sync()
+
+            current_time = time.time()
+            if current_time - last_time >= 0.5:
+                site_pos = data.site("attachment_site").xpos
+                print(f"[info] [{get_current_time(time.time())}] now pos : {site_pos}")
+                last_time = current_time
 
 
 if __name__ == "__main__":
